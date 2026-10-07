@@ -34,21 +34,7 @@ $("<button>Connect!</button>").on("click", function () {
 			}
 			slotData = e;
 			if (slotData.version) $("#appaint-version").text("APWorld Version " + slotData.version);
-			if (slotData.final_width) final_width = slotData.final_width;
-			if (slotData.final_height) final_height = slotData.final_height;
-			goal_canvas.width = final_width;
-			goal_canvas.height = final_height;
-			$goal.width(final_width)
-			$goal.height(final_height)
-			diff_canvas.width = final_width;
-			diff_canvas.height = final_height;
-			$diff.width(final_width)
-			$diff.height(final_height)
-			sim_canvas.width = final_width;
-			sim_canvas.height = final_height;
-			$sim.width(final_width)
-			$sim.height(final_height)
-			$goal_image.attr("src", $goal_image.attr("src") ?? ("images/archipelago/" + final_width + "x" + final_height + ".png"));
+			$goal_image.attr("src", $goal_image.attr("src") ?? ("images/archipelago/800x600.png"));
 			$G.triggerHandler("save-connection-info");
 			$G.triggerHandler("restore-colors");
 			update();
@@ -253,12 +239,34 @@ function update() {
 				break;
 		}
 	}
-	default_tool = get_tool_by_id("TOOL_" +
-		["Brush", "Pencil", "Eraser/Color Eraser", "Airbrush", "Line", "Rectangle", "Ellipse", "Rounded Rectangle"]
-			.filter((a) => received().includes(a))[0].split("/")[0].replace(" ", "_").toUpperCase());
+
+	const defaultToolName = ["Brush", "Pencil", "Eraser/Color Eraser", "Airbrush", "Line", "Rectangle", "Ellipse", "Rounded Rectangle"]
+			.find((toolName) => received().includes(toolName));
+
+	if (defaultToolName) {
+		default_tool = get_tool_by_id(("TOOL_" + defaultToolName).split("/")[0].replace(" ", "_").toUpperCase());
+	}
+
 	resize_canvas_without_saving_dimensions(w, h);
 	$colorbox.rebuild_palette(palette);
 	calculate_similarity();
+}
+
+function updateTargetDimensions(width, height) {
+	final_width = width;
+	final_height = height;
+	goal_canvas.width = width;
+	goal_canvas.height = height;
+	$goal.width(width);
+	$goal.height(height);
+	diff_canvas.width = width;
+	diff_canvas.height = height;
+	$diff.width(width);
+	$diff.height(height);
+	sim_canvas.width = width;
+	sim_canvas.height = height;
+	$sim.width(width);
+	$sim.height(height);
 }
 
 function deathlink(method) {
@@ -310,5 +318,5 @@ function version_below(version) {
 	return false;
 }
 
-export { deathlink, final_height, final_width, received, send, show_text_client, slotData, version_below };
+export { deathlink, final_height, final_width, received, send, show_text_client, slotData, update, updateTargetDimensions, version_below };
 

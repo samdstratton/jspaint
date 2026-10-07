@@ -7,7 +7,7 @@ import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
-import { deathlink, final_height, final_width, received, send, slotData, version_below } from "./archipelago.js";
+import { deathlink, final_height, final_width, received, send, slotData, update, updateTargetDimensions, version_below } from "./archipelago.js";
 // import { localize } from "./app-localization.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
@@ -978,8 +978,10 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 	reset_canvas_and_history(); // (with newly reset colors)
 	set_magnification(default_magnification);*/
 
+	const image = info.image || info.image_data;
+
 	if (from_session_load) {
-		createImageBitmap(info.image || info.image_data).then(function (e) {
+		createImageBitmap(image).then(function (e) {
 			main_ctx.drawImage(e, 0, 0, e.width, e.height)
 			current_history_node.name = localize("Open");
 			current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
@@ -987,8 +989,12 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 		});
 	}
 	else {
-		createImageBitmap(info.image || info.image_data).then(function (e) {
-			goal_ctx.drawImage(e, 0, 0, goal_canvas.width, goal_canvas.height);
+		createImageBitmap(image).then(function (e) {
+			const { scaledWidth, scaledHeight } = scale_dimensions_to_match_default(e.width, e.height);
+			updateTargetDimensions(scaledWidth, scaledHeight);
+			goal_ctx.drawImage(e, 0, 0, scaledWidth, scaledHeight);
+			update();
+			update_magnified_canvas_size();
 			$G.triggerHandler("save-goal");
 		});
 	}
@@ -1024,6 +1030,29 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 
 	callback?.();
 }, canceled, from_session_load);*/
+}
+
+/**
+ * @param {number} orig_width
+ * @param {number} orig_height
+ * @returns {{scaledWidth: number, scaledHeight: number}}
+ */
+function scale_dimensions_to_match_default(orig_width, orig_height) {
+	const defaultTotalPixels = default_canvas_width * default_canvas_height;
+
+	const scaleFactor = Math.sqrt(defaultTotalPixels / (orig_width * orig_height));
+
+	let newWidth = Math.max(1, Math.round(orig_width * scaleFactor));
+	let newHeight = Math.max(1, Math.round(orig_height * scaleFactor));
+
+	// Don't bother rescaling if the original image is within a "close enough" size margin
+	const closeEnough = 20; // <- must be within this many pixels for both width and height
+	if (Math.abs(newWidth - orig_width) < closeEnough && Math.abs(newHeight - orig_height) < closeEnough) {
+		newWidth = orig_width;
+		newHeight = orig_height;
+	}
+
+	return { scaledWidth: newWidth, scaledHeight: newHeight };
 }
 
 // Note: This function is part of the API.
