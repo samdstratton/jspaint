@@ -233,6 +233,21 @@ html, body, .jspaint {
 	width: 25px;
 	height: 25px;
 }
+.eye-gaze-mode .colors-component.wide {
+	height: 50px;
+}
+.eye-gaze-mode .colors-component.wide .color-box {
+	height: 100%;
+}
+.eye-gaze-mode .colors-component.wide .current-colors {
+	height: 100%;
+}
+.eye-gaze-mode .colors-component.wide .foreground-color {
+	top: 12px;
+}
+.eye-gaze-mode .colors-component.wide .background-color {
+	bottom: 12px;
+}
 .eye-gaze-mode .colors-component.tall {
 	width: 50px;
 }
@@ -247,6 +262,17 @@ html, body, .jspaint {
 }
 .eye-gaze-mode .colors-component.tall .background-color {
 	left: 12px;
+}
+
+.eye-gaze-mode .status-area {
+	font-size: 2rem;
+}
+.eye-gaze-mode .status-field {
+	height: 3rem;
+	line-height: 2.5rem;
+}
+.eye-gaze-mode .status-coordinates {
+	flex: 0 0 17rem;
 }
 
 .eye-gaze-mode .os-window .window-titlebar {
@@ -288,9 +314,9 @@ html, body, .jspaint {
 	mask-size: 1.2em 1.2em;
 }
 
-.eye-gaze-mode .status-area {
-	padding-right: 170px;
-}
+/*.eye-gaze-mode .status-area {
+	padding-left: 170px;
+}*/
 
 .eye-gaze-mode-floating-buttons {
 	position: fixed;
@@ -499,6 +525,7 @@ html, body, .jspaint {
 }
 .edit-colors-window .window-content .right-side {
 	width: 218px;
+	height: 298px;
 	position: relative;
 	padding-top: 7px;
 	padding-left: 10px;
@@ -550,32 +577,32 @@ html, body, .jspaint {
 /* WET layout code for small viewports and eye gaze mode */
 /* could do it cleaner with JavaScript or CSS preprocessor */
 @media (max-width: 450px) {
-	.edit-colors-window {
+	/*.edit-colors-window {
 		overflow: hidden;
 	}
 	.edit-colors-window.defining-custom-colors .left-side {
 		/* display: none !important; */
 		/* this element is determining the height */
-		width: 0;
+		/*width: 0;
 		visibility: hidden;
 	}
 	.edit-colors-window:not(.defining-custom-colors) .right-side {
 		display: none !important;
-	}
+	}*/
 }
 /* WET layout code for small viewports and eye gaze mode */
-.eye-gaze-mode .edit-colors-window {
+/*.eye-gaze-mode .edit-colors-window {
 	overflow: hidden;
 }
 .eye-gaze-mode .edit-colors-window.defining-custom-colors .left-side {
 	/* display: none !important; */
 	/* this element is determining the height */
-	width: 0;
+	/*width: 0;
 	visibility: hidden;
 }
 .eye-gaze-mode .edit-colors-window:not(.defining-custom-colors) .right-side {
 	display: none !important;
-}
+}*/
 
 .save-as .window-content > form > div {
 	display: flex;
@@ -624,6 +651,10 @@ html, body, .jspaint {
 	direction: ltr;
 }
 .main-canvas {
+	position: absolute;
+	z-index: 2;
+}
+.goal-canvas {
 	position: absolute;
 	z-index: 2;
 }
@@ -899,7 +930,7 @@ html, body, .jspaint {
 	display: block;
 }
 .storage-manager .thumbnail-container {
-	width: 64px;
+	width: 128px;
 	height: 64px;
 	display: flex;
 	align-items: center;
@@ -980,7 +1011,7 @@ input[type="radio"] + label::before {
 	font-size: 2rem;
 	margin: 0;
 }
-#jspaint-version {
+#jspaint-version, #appaint-version {
 	/* @TODO: separate some of this into a shared.css? (not all layout!) */
 	white-space: nowrap;
 	font-size: 1.4rem;
