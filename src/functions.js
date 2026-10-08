@@ -1004,6 +1004,11 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 function set_target_image(goalImage, imageWidth, imageHeight) {
 	const { scaledWidth, scaledHeight } = scale_dimensions_to_match_default(imageWidth, imageHeight);
 	updateTargetDimensions(scaledWidth, scaledHeight);
+
+	// Fill with white first in case the goal image has transparency
+	goal_ctx.fillStyle = "white";
+	goal_ctx.fillRect(0, 0, scaledWidth, scaledHeight);
+
 	goal_ctx.drawImage(goalImage, 0, 0, scaledWidth, scaledHeight);
 	update();
 	update_magnified_canvas_size();
@@ -2158,7 +2163,7 @@ function calculate_similarity() {
 				diff_pixels.data[goal_offset] = 128 + goal_pixels.data[goal_offset] - main_pixels.data[main_offset];
 				diff_pixels.data[goal_offset + 1] = 128 + goal_pixels.data[goal_offset + 1] - main_pixels.data[main_offset + 1];
 				diff_pixels.data[goal_offset + 2] = 128 + goal_pixels.data[goal_offset + 2] - main_pixels.data[main_offset + 2];
-				if (!version_below("0.5.0")) pixel_similarity = 2 * pixel_similarity - 1;
+				if (!version_below("0.5.0")) pixel_similarity = Math.max(0, 2 * pixel_similarity - 1); // clamp to 0 to prevent user seeing a negative score
 				s += pixel_similarity;
 			}
 			else {
