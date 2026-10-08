@@ -7,7 +7,7 @@ import { $DialogWindow } from "./$ToolWindow.js";
 import { OnCanvasHelperLayer } from "./OnCanvasHelperLayer.js";
 import { OnCanvasSelection } from "./OnCanvasSelection.js";
 import { OnCanvasTextBox } from "./OnCanvasTextBox.js";
-import { deathlink, final_height, final_width, received, send, slotData, update, updateTargetDimensions, version_below } from "./archipelago.js";
+import { deathlink, final_height, final_width, getCurrentDrawingCanvasDimensions, received, send, slotData, update, updateTargetDimensions, version_below } from "./archipelago.js";
 // import { localize } from "./app-localization.js";
 import { default_palette } from "./color-data.js";
 import { image_formats } from "./file-format-data.js";
@@ -2181,8 +2181,11 @@ function calculate_logic_similarity() {
 	var r = Math.min(items.filter(x => x == "Progressive Color Depth (Red)").length, 7);
 	var g = Math.min(items.filter(x => x == "Progressive Color Depth (Green)").length, 7);
 	var b = Math.min(items.filter(x => x == "Progressive Color Depth (Blue)").length, 7);
-	var w = Math.min(items.filter(x => x == "Progressive Canvas Width").length * (slotData.canvas_width_increment ?? slotData.canvas_size_increment ?? 100), final_width / 2);
-	var h = Math.min(items.filter(x => x == "Progressive Canvas Height").length * (slotData.canvas_height_increment ?? slotData.canvas_size_increment ?? 100), final_height / 2);
+
+	const numWidthIncrements = items.filter(x => x == "Progressive Canvas Width").length;
+	const numHeightIncrements = items.filter(x => x == "Progressive Canvas Height").length;
+	const { width: w, height: h } = getCurrentDrawingCanvasDimensions(numWidthIncrements, numHeightIncrements);
+
 	var p = items.includes("Pick Color");
 	if (!p) {
 		r = Math.min(r, 2);
@@ -2197,7 +2200,7 @@ function calculate_logic_similarity() {
 		per_pixel = 1 - (Math.sqrt(((2 ** (7 - r) - 1) ** 2 + (2 ** (7 - g) - 1) ** 2 + (2 ** (7 - b) - 1) ** 2) * 3)) / 765;
 		if (!version_below("0.5.0")) per_pixel = 2 * per_pixel - 1;
 	}
-	return per_pixel * (final_width / 2 + w) * (final_height / 2 + h) * slotData.logic_percent / (final_width * final_height);
+	return per_pixel * w * h * slotData.logic_percent / (final_width * final_height);
 }
 
 // Note: This function is part of the API.

@@ -210,9 +210,9 @@ function update() {
 		return;
 	}
 
-	var c = 2;
-	var w = final_width / 2;
-	var h = final_height / 2;
+	let c = 2;
+	let numWidthIncrements = 0;
+	let numHeightIncrements = 0;
 	for (var item of received()) {
 		switch (item) {
 			case "Additional Palette Color":
@@ -238,24 +238,45 @@ function update() {
 				$("#TOOL_" + item.split("/")[0].split(" With")[0].replace(" ", "_").replace("-", "_").toUpperCase() + "").removeClass("disabled");
 				break;
 			case "Progressive Canvas Width":
-				w = Math.min(w + (slotData.canvas_width_increment ?? slotData.canvas_size_increment ?? 100), final_width);
+				numWidthIncrements++;
 				break;
 			case "Progressive Canvas Height":
-				h = Math.min(h + (slotData.canvas_height_increment ?? slotData.canvas_size_increment ?? 100), final_height);
+				numHeightIncrements++;
 				break;
 		}
 	}
 
-	const defaultToolName = ["Brush", "Pencil", "Eraser/Color Eraser", "Airbrush", "Line", "Rectangle", "Ellipse", "Rounded Rectangle"]
-			.find((toolName) => received().includes(toolName));
+	const defaultToolName = ["Brush", "Pencil", "Eraser/Color Eraser", "Airbrush", "Line", "Rectangle", "Ellipse", "Rounded Rectangle"].find(
+		(toolName) => received().includes(toolName)
+	);
 
 	if (defaultToolName) {
 		default_tool = get_tool_by_id(("TOOL_" + defaultToolName).split("/")[0].replace(" ", "_").toUpperCase());
 	}
 
-	resize_canvas_without_saving_dimensions(w, h);
+	const { width, height } = getCurrentDrawingCanvasDimensions(numWidthIncrements, numHeightIncrements);
+	resize_canvas_without_saving_dimensions(width, height);
 	$colorbox.rebuild_palette(palette);
 	calculate_similarity();
+}
+
+/**
+ * @param {number} numWidthIncrements
+ * @param {number} numHeightIncrements
+ * @returns {{ width: number, height: number }}
+ */
+function getCurrentDrawingCanvasDimensions(numWidthIncrements, numHeightIncrements) {
+	// Calculate what size the canvas *would* be at the moment if the target was the default size (usually 800x600)
+	const baseWidthIncrement = slotData.canvas_width_increment ?? slotData.canvas_size_increment ?? 100;
+	const baseHeightIncrement = slotData.canvas_height_increment ?? slotData.canvas_size_increment ?? 100;
+	const baseWidth = Math.min((default_canvas_width / 2) + (baseWidthIncrement * numWidthIncrements), default_canvas_width);
+	const baseHeight = Math.min((default_canvas_height / 2) + (baseHeightIncrement * numHeightIncrements), default_canvas_height);
+
+	// Scale to the new size proportionally
+	const scaledWidth = (baseWidth / default_canvas_width) * final_width;
+	const scaledHeight = (baseHeight / default_canvas_height) * final_height;
+
+	return { width: Math.round(scaledWidth), height: Math.round(scaledHeight) };
 }
 
 function updateTargetDimensions(width, height) {
@@ -324,5 +345,5 @@ function version_below(version) {
 	return false;
 }
 
-export { deathlink, final_height, final_width, received, send, show_text_client, slotData, update, updateTargetDimensions, version_below };
+export { deathlink, final_height, final_width, getCurrentDrawingCanvasDimensions, received, send, show_text_client, slotData, update, updateTargetDimensions, version_below };
 
