@@ -982,6 +982,7 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 
 	if (from_session_load) {
 		createImageBitmap(image).then(function (e) {
+			resize_canvas_without_saving_dimensions(e.width, e.height);
 			main_ctx.drawImage(e, 0, 0, e.width, e.height)
 			current_history_node.name = localize("Open");
 			current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
@@ -990,46 +991,23 @@ function open_from_image_info(info, callback, canceled, into_existing_session, f
 	}
 	else {
 		createImageBitmap(image).then(function (e) {
-			const { scaledWidth, scaledHeight } = scale_dimensions_to_match_default(e.width, e.height);
-			updateTargetDimensions(scaledWidth, scaledHeight);
-			goal_ctx.drawImage(e, 0, 0, scaledWidth, scaledHeight);
-			update();
-			update_magnified_canvas_size();
-			$G.triggerHandler("save-goal");
+			set_target_image(e, e.width, e.height);
 		});
 	}
-	/*apply_file_format_and_palette_info(info);
-	transparency = has_any_transparency(main_ctx);
-	$canvas_area.trigger("resize");
+}
 
-	current_history_node.name = localize("Open");
-	current_history_node.image_data = main_ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-	current_history_node.icon = get_help_folder_icon("p_open.png");
-
-	if (canvas_modified_while_loading || !from_session_load) {
-		// normally we don't want to autosave if we're loading a session,
-		// as this is redundant, but if the user has modified the canvas while loading a session,
-		// right now how it works is the session would be overwritten, so if you reloaded, it'd be lost,
-		// so we'd better save it.
-		// (and we want to save if this is a new session being initialized with an image)
-		$G.triggerHandler("session-update"); // autosave
-	}
-	$G.triggerHandler("history-update"); // update history view
-
-	if (info.source_blob instanceof File) {
-		file_name = info.source_blob.name;
-		// file.path is available in Electron (see https://www.electronjs.org/docs/api/file-object#file-object)
-		// @ts-ignore
-		system_file_handle = info.source_blob.path;
-	}
-	if (info.source_file_handle) {
-		system_file_handle = info.source_file_handle;
-	}
-	saved = true;
-	update_title();
-
-	callback?.();
-}, canceled, from_session_load);*/
+/**
+ * @param {CanvasImageSource} goalImage
+ * @param {number} imageWidth
+ * @param {number} imageHeight
+ */
+function set_target_image(goalImage, imageWidth, imageHeight) {
+	const { scaledWidth, scaledHeight } = scale_dimensions_to_match_default(imageWidth, imageHeight);
+	updateTargetDimensions(scaledWidth, scaledHeight);
+	goal_ctx.drawImage(goalImage, 0, 0, scaledWidth, scaledHeight);
+	update();
+	update_magnified_canvas_size();
+	$G.triggerHandler("save-goal");
 }
 
 /**
@@ -1046,8 +1024,9 @@ function scale_dimensions_to_match_default(orig_width, orig_height) {
 	let newHeight = Math.max(1, Math.round(orig_height * scaleFactor));
 
 	// Don't bother rescaling if the original image is within a "close enough" size margin
-	const closeEnough = 20; // <- must be within this many pixels for both width and height
-	if (Math.abs(newWidth - orig_width) < closeEnough && Math.abs(newHeight - orig_height) < closeEnough) {
+	// Also prevents rounding errors from adding/removing a single pixel of width/height when an already-rescaled image is reloaded
+	const closeEnough = 25; // <- must be within this many pixels for both width and height. Must be 1 at minimum due to potential rounding issues mentioned above
+	if (Math.abs(newWidth - orig_width) <= closeEnough && Math.abs(newHeight - orig_height) <= closeEnough) {
 		newWidth = orig_width;
 		newHeight = orig_height;
 	}
@@ -4335,7 +4314,7 @@ export {
 	apply_file_format_and_palette_info, are_you_sure, calculate_similarity, cancel, change_some_url_params, change_url_param, choose_file_to_paste, cleanup_bitmap_view, clear, confirm_overwrite_capability, delete_selection, deselect, detect_monochrome,
 	edit_copy, edit_cut, edit_paste, exit_fullscreen_if_ios, file_load_from_url, file_new, file_open, file_print, file_save,
 	file_save_as, getSelectionText, get_all_url_params, get_history_ancestors, get_tool_by_id, get_uris, get_url_param, go_to_history_node, handle_keyshortcuts, has_any_transparency, image_attributes, image_flip_and_rotate, image_invert_colors, image_stretch_and_skew, load_image_from_uri, load_theme_from_text, make_history_node, make_monochrome_palette, make_monochrome_pattern, make_opaque, make_or_update_undoable, make_stripe_pattern, meld_selection_into_canvas,
-	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, render_history_as_gif, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, show_about_paint, show_convert_to_black_and_white, show_custom_zoom_window, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_news, show_resource_load_error_message, switch_to_polychrome_palette, toggle_grid,
+	meld_textbox_into_canvas, open_from_file, open_from_image_info, paste, paste_image_from_file, please_enter_a_number, read_image_file, redo, render_canvas_view, render_history_as_gif, reset_canvas_and_history, reset_file, reset_selected_colors, resize_canvas_and_save_dimensions, resize_canvas_without_saving_dimensions, sanity_check_blob, save_as_prompt, save_selection_to_file, select_all, select_tool, select_tools, set_all_url_params, set_magnification, set_target_image, show_about_paint, show_convert_to_black_and_white, show_custom_zoom_window, show_document_history, show_error_message, show_file_format_errors, show_multi_user_setup_dialog, show_news, show_resource_load_error_message, switch_to_polychrome_palette, toggle_grid,
 	toggle_thumbnail, try_exec_command, undo, undoable, update_canvas_rect, update_css_classes_for_conditional_messages, update_disable_aa, update_from_saved_file, update_helper_layer,
 	update_helper_layer_immediately, update_magnified_canvas_size, update_title, view_bitmap, write_image_file
 };

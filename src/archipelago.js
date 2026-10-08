@@ -204,6 +204,12 @@ function onMessage(message) {
 }
 
 function update() {
+	if (!client.authenticated) {
+		// we're not connected yet, so we do not know how many canvas size unlocks we have
+		// cannot continue or the player's drawing may get cropped
+		return;
+	}
+
 	var c = 2;
 	var w = final_width / 2;
 	var h = final_height / 2;
